@@ -32,4 +32,6 @@
 *.app
 
 alice_kem
+alice2_kem
+bob_kem
 *.bin
