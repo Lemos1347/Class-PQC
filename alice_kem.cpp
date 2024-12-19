@@ -36,7 +36,8 @@ void print_hex(const char *label, const uint8_t *data, size_t length) {
 int main() {
   printf("=== Alice: Key Generation ===\n");
 
-  const char *kem_alg = OQS_KEM_alg_ml_kem_512;
+  // Specify the algorithm to use (ML-KEM with 1024-bit keys)
+  const char *kem_alg = OQS_KEM_alg_ml_kem_1024;
   printf("[INFO] Using algorithm: %s\n", kem_alg);
 
   // Block 3: Initialize the Key Encapsulation Mechanism (KEM) algorithm
@@ -53,18 +54,27 @@ int main() {
   uint8_t *public_key = (uint8_t *)malloc(kem->length_public_key);
   uint8_t *secret_key = (uint8_t *)malloc(kem->length_secret_key);
 
+  if (public_key == NULL || secret_key == NULL) {
+    fprintf(stderr, "Error allocating memory for keys.\n");
+    OQS_KEM_free(kem);
+    return EXIT_FAILURE;
+  }
+
   // Block 5: Generate the key pair
   // Calls the OQS_KEM_keypair function to generate the public and secret keys.
   // If key generation fails, displays an error message and terminates the program.
   if (OQS_KEM_keypair(kem, public_key, secret_key) != OQS_SUCCESS) {
     fprintf(stderr, "Error generating key pair.\n");
+    free(public_key);
+    free(secret_key);
+    OQS_KEM_free(kem);
     return EXIT_FAILURE;
   }
 
   // Block 6: Save the keys to binary files
-  // Writes the public and secret keys to separate files.
-  write_to_file("public_key.bin", public_key, kem->length_public_key);
-  write_to_file("secret_key.bin", secret_key, kem->length_secret_key);
+  // Writes the public and secret keys to separate files for persistent storage.
+  write_to_file("public_key_1024.bin", public_key, kem->length_public_key);
+  write_to_file("secret_key_1024.bin", secret_key, kem->length_secret_key);
 
   // Block 7: Display information about the generated keys
   // Prints the public and secret keys in hexadecimal format to the terminal.
@@ -74,8 +84,8 @@ int main() {
   print_hex("Secret Key", secret_key, kem->length_secret_key);
 
   printf("[INFO] Generated files:\n");
-  printf("  - public_key.bin\n");
-  printf("  - secret_key.bin\n");
+  printf("  - public_key_1024.bin\n");
+  printf("  - secret_key_1024.bin\n");
 
   // Block 8: Release resources
   // Frees the allocated memory for the keys and the KEM structure.
